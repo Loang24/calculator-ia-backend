@@ -11,17 +11,40 @@ module.exports = async (req, res) => {
 
   try {
 
-   let message;
+  let message;
 
 if (typeof req.body === "string") {
-  try {
-    const body = JSON.parse(req.body);
-    message = body.message;
-  } catch (e) {
-    message = null;
-  }
+
+    try {
+        const body = JSON.parse(req.body);
+        message = body.message;
+    } catch (e) {
+        message = null;
+    }
+
 } else {
-  message = req.body.message;
+
+    // JSON normal
+    message = req.body.message;
+
+    // Android Builder (application/x-www-form-urlencoded)
+    if (!message) {
+
+        const keys = Object.keys(req.body);
+
+        if (keys.length > 0) {
+
+            try {
+
+                const body = JSON.parse(keys[0]);
+                message = body.message;
+
+            } catch (e) {}
+
+        }
+
+    }
+
 }
 
 console.log("Content-Type:", req.headers["content-type"]);
