@@ -11,7 +11,21 @@ module.exports = async (req, res) => {
 
   try {
 
-    const { message } = req.body;
+   let message;
+
+if (typeof req.body === "string") {
+  try {
+    const body = JSON.parse(req.body);
+    message = body.message;
+  } catch (e) {
+    message = null;
+  }
+} else {
+  message = req.body.message;
+}
+
+console.log("Content-Type:", req.headers["content-type"]);
+console.log("Body recibido:", req.body);
 
     if (!message) {
       return res.status(400).json({

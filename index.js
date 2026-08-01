@@ -7,6 +7,7 @@ const app = express();
 // Configuración
 app.use(cors());
 app.use(express.json());
+app.use(express.text());
 
 // Ruta principal
 app.get("/", (req, res) => {
