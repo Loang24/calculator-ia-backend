@@ -1,4 +1,4 @@
-const askGroq = require("../services/groq");
+const askAI = require("../services/aiManager");
 
 module.exports = async (req, res) => {
 
@@ -57,7 +57,7 @@ console.log("Body recibido:", req.body);
       });
     }
 
-    const response = await askGroq(message);
+   const response = await askAI(message);
 
     return res.json({
       success: true,
