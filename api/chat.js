@@ -57,13 +57,20 @@ module.exports = async (req, res) => {
         console.log("Content-Type:", req.headers["content-type"]);
         console.log("Body recibido:", req.body);
 
-        // Limpiar texto recibido (especialmente desde OCR)
-        message = String(message)
-            .replace(/\r/g, "")
-            .replace(/\n/g, " ")
-            .replace(/\t/g, " ")
-            .replace(/\s+/g, " ")
-            .trim();
+        // Decodificar el texto recibido desde Android Builder
+try {
+    message = decodeURIComponent(message);
+} catch (e) {
+    console.log("No fue necesario decodificar.");
+}
+
+// Limpiar el texto
+message = String(message)
+    .replace(/\r/g, "")
+    .replace(/\n/g, " ")
+    .replace(/\t/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
         if (!message) {
             return res.status(400).json({
