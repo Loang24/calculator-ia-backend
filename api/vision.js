@@ -100,10 +100,19 @@ module.exports = async (req, res) => {
                     "Gemini Vision respondió correctamente."
                 );
 
-                return res.status(200).json({
-                    success: true,
-                    response: response
-                });
+                console.log(
+                    "Longitud de respuesta:",
+                    response ? response.length : 0
+                );
+
+                // =====================================================
+                // RESPUESTA LIMPIA PARA ANDROID BUILDER
+                // =====================================================
+
+                return res
+                    .status(200)
+                    .type("text/plain")
+                    .send(response);
 
             } catch (error) {
 
