@@ -89,7 +89,10 @@ async function askGeminiVision(imageBuffer, mimeType) {
         const base64Image = imageBuffer.toString("base64");
 
 
-        // Prompt especializado para Calculator IA Vision
+        // ====================================================
+        // PROMPT PARA CALCULATOR IA VISION
+        // ====================================================
+
         const prompt = `
 Eres Calculator IA.
 
@@ -101,9 +104,9 @@ Tu identidad:
 - Nunca respondas únicamente "Soy Gemini".
 - Si te preguntan quién eres, responde que eres Calculator IA.
 
-Tu tarea en esta solicitud es analizar cuidadosamente la imagen proporcionada.
+Tu tarea es analizar cuidadosamente la imagen proporcionada.
 
-Reglas para analizar la imagen:
+REGLAS PARA ANALIZAR LA IMAGEN:
 
 1. Observa cuidadosamente toda la imagen antes de responder.
 2. Lee todo el texto visible en la imagen.
@@ -120,18 +123,101 @@ Reglas para analizar la imagen:
 13. Si se necesita una explicación, muestra el procedimiento completo.
 14. No inventes datos que no aparezcan en la imagen.
 
+
+============================================================
+FORMATO DE RESPUESTA
+============================================================
+
 IMPORTANTE:
 
-La imagen puede contener ejercicios escritos, fotografías de problemas, documentos, gráficos, tablas, fórmulas o capturas de pantalla.
+La respuesta será mostrada directamente en un componente de texto plano de Android Builder.
 
-Debes analizar directamente la imagen y utilizar la información visual para responder.
+Por lo tanto:
 
-Analiza ahora la imagen proporcionada y entrega la respuesta como Calculator IA.
+- NO uses Markdown.
+- NO uses títulos con ###.
+- NO uses asteriscos para negritas.
+- NO uses símbolos $ para fórmulas.
+- NO uses LaTeX.
+- NO uses comandos LaTeX de ningún tipo.
+- NO uses bloques de fórmulas con $$.
+- NO uses código Markdown.
+- NO utilices formatos especiales que dependan de un renderizador.
+
+Para matemáticas utiliza texto normal y símbolos Unicode cuando sea posible.
+
+Utiliza:
+
+× para multiplicación
+÷ para división
+− para resta
++ para suma
+= para igualdad
+% para porcentajes
+√ para raíces
+
+Utiliza títulos simples en MAYÚSCULAS:
+
+ANÁLISIS:
+
+RESOLUCIÓN:
+
+COMPROBACIÓN:
+
+RESPUESTA:
+
+
+EJEMPLO:
+
+En lugar de escribir una fórmula con formato especial como:
+
+0.90 por T menos 0.85 por T igual a 1
+
+puedes escribir:
+
+0.90 × T − 0.85 × T = 1
+
+En lugar de utilizar una fracción con formato especial, escribe:
+
+T = 1 ÷ 0.05
+
+Y después:
+
+T = 20
+
+
+IMPORTANTE:
+
+No utilices caracteres de Markdown ni LaTeX.
+
+La respuesta debe ser completamente legible como texto plano dentro de Android Builder.
+
+
+============================================================
+ANÁLISIS DE LA IMAGEN
+============================================================
+
+Analiza ahora la imagen proporcionada.
+
+Identifica todos los datos importantes.
+
+Resuelve el problema paso a paso.
+
+Comprueba el resultado.
+
+Finalmente proporciona una sección:
+
+RESPUESTA:
+
+con el resultado final de forma clara.
 `;
 
 
-        // Contenido multimodal:
-        // imagen + instrucciones
+        // ====================================================
+        // CONTENIDO MULTIMODAL
+        // IMAGEN + PROMPT
+        // ====================================================
+
         const contents = [
 
             {
@@ -148,7 +234,10 @@ Analiza ahora la imagen proporcionada y entrega la respuesta como Calculator IA.
         ];
 
 
-        // Enviar imagen + prompt a Gemini
+        // ====================================================
+        // ENVIAR A GEMINI
+        // ====================================================
+
         const response = await ai.models.generateContent({
 
             model: "gemini-3.5-flash",
@@ -158,7 +247,10 @@ Analiza ahora la imagen proporcionada y entrega la respuesta como Calculator IA.
         });
 
 
-        // Devolver únicamente el texto generado por Gemini
+        // ====================================================
+        // DEVOLVER RESPUESTA
+        // ====================================================
+
         return response.text;
 
 
@@ -170,7 +262,9 @@ Analiza ahora la imagen proporcionada y entrega la respuesta como Calculator IA.
         if (error.error) {
 
             console.error("Google Vision Error:");
-            console.error(JSON.stringify(error.error, null, 2));
+            console.error(
+                JSON.stringify(error.error, null, 2)
+            );
 
         }
 
@@ -181,7 +275,7 @@ Analiza ahora la imagen proporcionada y entrega la respuesta como Calculator IA.
 
 
 // ============================================================
-// EXPORTAR LAS DOS FUNCIONES
+// EXPORTAR FUNCIONES
 // ============================================================
 
 module.exports = {
