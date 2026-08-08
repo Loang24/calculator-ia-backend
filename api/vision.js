@@ -1,4 +1,5 @@
 const Busboy = require("busboy");
+const { askAIVision } = require("../services/aiManager");
 
 module.exports = async (req, res) => {
 
@@ -14,7 +15,6 @@ module.exports = async (req, res) => {
         console.log("======================================");
         console.log("NUEVA PETICIÓN A /api/vision");
         console.log("Método:", req.method);
-        console.log("Headers:", req.headers);
         console.log("======================================");
 
         const busboy = Busboy({
@@ -36,8 +36,15 @@ module.exports = async (req, res) => {
             const chunks = [];
 
             file.on("data", (data) => {
-                console.log("Chunk recibido:", data.length, "bytes");
+
+                console.log(
+                    "Chunk recibido:",
+                    data.length,
+                    "bytes"
+                );
+
                 chunks.push(data);
+
             });
 
             file.on("end", () => {
@@ -45,7 +52,11 @@ module.exports = async (req, res) => {
                 imageBuffer = Buffer.concat(chunks);
 
                 console.log("Archivo terminado.");
-                console.log("Tamaño:", imageBuffer.length, "bytes");
+                console.log(
+                    "Tamaño:",
+                    imageBuffer.length,
+                    "bytes"
+                );
 
             });
 
@@ -53,11 +64,15 @@ module.exports = async (req, res) => {
 
         busboy.on("finish", async () => {
 
-            console.log("Busboy terminó de procesar la petición.");
+            console.log(
+                "Busboy terminó de procesar la petición."
+            );
 
             if (!imageBuffer) {
 
-                console.log("ERROR: No llegó ninguna imagen.");
+                console.log(
+                    "ERROR: No llegó ninguna imagen."
+                );
 
                 return res.status(400).json({
                     success: false,
@@ -66,14 +81,44 @@ module.exports = async (req, res) => {
 
             }
 
-            console.log("Imagen lista para enviar a Gemini.");
+            console.log(
+                "Imagen recibida correctamente."
+            );
 
-            return res.json({
-                success: true,
-                message: "Imagen recibida correctamente.",
-                size: imageBuffer.length,
-                mimeType: mimeType
-            });
+            console.log(
+                "Enviando imagen a Gemini Vision..."
+            );
+
+            try {
+
+                const response = await askAIVision(
+                    imageBuffer,
+                    mimeType
+                );
+
+                console.log(
+                    "Gemini Vision respondió correctamente."
+                );
+
+                return res.status(200).json({
+                    success: true,
+                    response: response
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "===== ERROR GEMINI VISION ====="
+                );
+
+                console.error(error);
+
+                return res.status(500).json({
+                    success: false,
+                    error: error.message
+                });
+
+            }
 
         });
 
@@ -81,7 +126,10 @@ module.exports = async (req, res) => {
 
     } catch (error) {
 
-        console.error("===== ERROR EN VISION =====");
+        console.error(
+            "===== ERROR EN /api/vision ====="
+        );
+
         console.error(error);
 
         return res.status(500).json({

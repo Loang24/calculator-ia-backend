@@ -1,4 +1,4 @@
-const askAI = require("../services/aiManager");
+const { askAI } = require("../services/aiManager");
 
 module.exports = async (req, res) => {
 
