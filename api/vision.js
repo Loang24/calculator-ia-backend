@@ -109,10 +109,9 @@ module.exports = async (req, res) => {
                 // RESPUESTA LIMPIA PARA ANDROID BUILDER
                 // =====================================================
 
-                return res
-                    .status(200)
-                    .type("text/plain")
-                    .send(response);
+               return res
+    .status(200)
+    .send(response);
 
             } catch (error) {
 
