@@ -32,6 +32,58 @@ function sleep(ms) {
 
 
 // ============================================================
+// MOSTRAR ERROR COMPLETO DE GEMINI
+// ============================================================
+
+function logGeminiError(error) {
+
+    console.error("========================================");
+    console.error("      DETALLE COMPLETO DEL ERROR");
+    console.error("========================================");
+
+    console.error("Mensaje:");
+    console.error(error?.message);
+
+    console.error("Status:");
+    console.error(error?.status);
+
+    console.error("Nombre:");
+    console.error(error?.name);
+
+    console.error("Error interno:");
+    console.error(error?.error);
+
+    console.error("Detalles:");
+    console.error(error?.details);
+
+    console.error("Response:");
+    console.error(error?.response);
+
+    console.error("Código:");
+    console.error(error?.code);
+
+    console.error("Objeto completo:");
+
+    try {
+
+        console.error(
+            JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+        );
+
+    } catch (jsonError) {
+
+        console.error(
+            "No fue posible convertir el error a JSON."
+        );
+
+        console.error(error);
+    }
+
+    console.error("========================================");
+}
+
+
+// ============================================================
 // EJECUTAR GEMINI CON REINTENTOS
 // ============================================================
 
@@ -47,9 +99,12 @@ async function generateWithRetry(request) {
                 `🤖 Gemini intento ${attempt}/${MAX_RETRIES}`
             );
 
-            const response = await ai.models.generateContent(request);
+            const response =
+                await ai.models.generateContent(request);
 
-            console.log("✅ Gemini respondió correctamente.");
+            console.log(
+                "✅ Gemini respondió correctamente."
+            );
 
             return response;
 
@@ -63,17 +118,22 @@ async function generateWithRetry(request) {
                 error?.error?.status;
 
             console.error(
-                `❌ Gemini error en intento ${attempt}:`,
-                status || error.message
+                `❌ Gemini error en intento ${attempt}: ${status || "DESCONOCIDO"}`
             );
 
-            // Si no es un error temporal, no tiene sentido reintentar
+            // Mostrar información detallada
+            logGeminiError(error);
+
+            // Si no es un error temporal,
+            // no hacemos más reintentos.
+
             if (!RETRYABLE_STATUS.includes(Number(status))) {
 
                 throw error;
             }
 
-            // Si ya llegamos al último intento
+            // Último intento
+
             if (attempt === MAX_RETRIES) {
 
                 console.error(
@@ -84,10 +144,12 @@ async function generateWithRetry(request) {
             }
 
             // Espera progresiva:
+            //
             // intento 1 → 2 segundos
             // intento 2 → 4 segundos
 
-            const delay = 2000 * Math.pow(2, attempt - 1);
+            const delay =
+                2000 * Math.pow(2, attempt - 1);
 
             console.log(
                 `⏳ Esperando ${delay / 1000} segundos antes de reintentar...`
@@ -109,17 +171,18 @@ async function askGemini(message) {
 
     try {
 
-        const response = await generateWithRetry({
+        const response =
+            await generateWithRetry({
 
-            model: "gemini-3.5-flash",
+                model: "gemini-3.5-flash",
 
-            contents: [
-                {
-                    role: "user",
+                contents: [
+                    {
+                        role: "user",
 
-                    parts: [
-                        {
-                            text: `
+                        parts: [
+                            {
+                                text: `
 Eres Calculator IA.
 
 Tu identidad:
@@ -194,27 +257,20 @@ Pregunta del usuario:
 
 ${message}
 `
-                        }
-                    ]
-                }
-            ]
+                            }
+                        ]
+                    }
+                ]
 
-        });
+            });
 
         return response.text;
 
     } catch (error) {
 
         console.error("===== GEMINI ERROR =====");
-        console.error(error);
 
-        if (error.error) {
-
-            console.error("Google Error:");
-            console.error(
-                JSON.stringify(error.error, null, 2)
-            );
-        }
+        logGeminiError(error);
 
         throw error;
     }
@@ -225,13 +281,17 @@ ${message}
 // GEMINI VISION - ANALIZAR IMÁGENES
 // ============================================================
 
-async function askGeminiVision(imageBuffer, mimeType) {
+async function askGeminiVision(
+    imageBuffer,
+    mimeType
+) {
 
     try {
 
         // Convertir imagen a Base64
 
-        const base64Image = imageBuffer.toString("base64");
+        const base64Image =
+            imageBuffer.toString("base64");
 
 
         // ====================================================
@@ -370,19 +430,45 @@ seguido del resultado final.
         // ENVIAR A GEMINI CON REINTENTOS
         // ====================================================
 
-            } catch (error) {
+        console.log(
+            "👁️ USANDO GEMINI VISION"
+        );
 
-        console.error("===== GEMINI VISION ERROR =====");
-        console.error(error);
+        console.log(
+            "MimeType:",
+            mimeType
+        );
 
-        if (error.error) {
+        console.log(
+            "Tamaño de imagen:",
+            imageBuffer.length,
+            "bytes"
+        );
 
-            console.error("Google Vision Error:");
 
-            console.error(
-                JSON.stringify(error.error, null, 2)
-            );
-        }
+        const response =
+            await generateWithRetry({
+
+                model: "gemini-3.5-flash",
+
+                contents: contents
+
+            });
+
+
+        // ====================================================
+        // DEVOLVER RESPUESTA
+        // ====================================================
+
+        return response.text;
+
+    } catch (error) {
+
+        console.error(
+            "===== GEMINI VISION ERROR ====="
+        );
+
+        logGeminiError(error);
 
         throw error;
     }
