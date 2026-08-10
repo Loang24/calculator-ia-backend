@@ -8,6 +8,100 @@ const ai = new GoogleGenAI({
 
 
 // ============================================================
+// CONFIGURACIÓN DE REINTENTOS
+// ============================================================
+
+const MAX_RETRIES = 3;
+
+const RETRYABLE_STATUS = [
+    429,
+    500,
+    502,
+    503,
+    504
+];
+
+
+// ============================================================
+// FUNCIÓN PARA ESPERAR
+// ============================================================
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+// ============================================================
+// EJECUTAR GEMINI CON REINTENTOS
+// ============================================================
+
+async function generateWithRetry(request) {
+
+    let lastError;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+
+        try {
+
+            console.log(
+                `🤖 Gemini intento ${attempt}/${MAX_RETRIES}`
+            );
+
+            const response = await ai.models.generateContent(request);
+
+            console.log("✅ Gemini respondió correctamente.");
+
+            return response;
+
+        } catch (error) {
+
+            lastError = error;
+
+            const status =
+                error?.status ||
+                error?.error?.code ||
+                error?.error?.status;
+
+            console.error(
+                `❌ Gemini error en intento ${attempt}:`,
+                status || error.message
+            );
+
+            // Si no es un error temporal, no tiene sentido reintentar
+            if (!RETRYABLE_STATUS.includes(Number(status))) {
+
+                throw error;
+            }
+
+            // Si ya llegamos al último intento
+            if (attempt === MAX_RETRIES) {
+
+                console.error(
+                    "❌ Gemini continúa sin responder después de varios intentos."
+                );
+
+                throw error;
+            }
+
+            // Espera progresiva:
+            // intento 1 → 2 segundos
+            // intento 2 → 4 segundos
+
+            const delay = 2000 * Math.pow(2, attempt - 1);
+
+            console.log(
+                `⏳ Esperando ${delay / 1000} segundos antes de reintentar...`
+            );
+
+            await sleep(delay);
+        }
+    }
+
+    throw lastError;
+}
+
+
+// ============================================================
 // GEMINI PARA TEXTO
 // ============================================================
 
@@ -15,13 +109,14 @@ async function askGemini(message) {
 
     try {
 
-        const response = await ai.models.generateContent({
+        const response = await generateWithRetry({
 
             model: "gemini-3.5-flash",
 
             contents: [
                 {
                     role: "user",
+
                     parts: [
                         {
                             text: `
@@ -116,13 +211,13 @@ ${message}
         if (error.error) {
 
             console.error("Google Error:");
-            console.error(JSON.stringify(error.error, null, 2));
-
+            console.error(
+                JSON.stringify(error.error, null, 2)
+            );
         }
 
         throw error;
     }
-
 }
 
 
@@ -134,7 +229,8 @@ async function askGeminiVision(imageBuffer, mimeType) {
 
     try {
 
-        // Convertir la imagen recibida a Base64
+        // Convertir imagen a Base64
+
         const base64Image = imageBuffer.toString("base64");
 
 
@@ -271,26 +367,10 @@ seguido del resultado final.
 
 
         // ====================================================
-        // ENVIAR A GEMINI
+        // ENVIAR A GEMINI CON REINTENTOS
         // ====================================================
 
-        const response = await ai.models.generateContent({
-
-            model: "gemini-3.5-flash",
-
-            contents: contents
-
-        });
-
-
-        // ====================================================
-        // DEVOLVER RESPUESTA
-        // ====================================================
-
-        return response.text;
-
-
-    } catch (error) {
+            } catch (error) {
 
         console.error("===== GEMINI VISION ERROR =====");
         console.error(error);
@@ -298,15 +378,14 @@ seguido del resultado final.
         if (error.error) {
 
             console.error("Google Vision Error:");
+
             console.error(
                 JSON.stringify(error.error, null, 2)
             );
-
         }
 
         throw error;
     }
-
 }
 
 
