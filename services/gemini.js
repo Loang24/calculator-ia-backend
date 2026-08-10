@@ -174,7 +174,7 @@ async function askGemini(message) {
         const response =
             await generateWithRetry({
 
-                model: "gemini-3.5-flash",
+                model: "gemini-3.5-flash-lite",
 
                 contents: [
                     {
@@ -449,7 +449,7 @@ seguido del resultado final.
         const response =
             await generateWithRetry({
 
-                model: "gemini-3.5-flash",
+                model: "gemini-3.5-flash-lite",
 
                 contents: contents
 
