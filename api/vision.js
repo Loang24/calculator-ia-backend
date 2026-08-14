@@ -30,6 +30,14 @@ module.exports = async (req, res) => {
 
         let language = "es";
 
+if (req.query && req.query.language) {
+    language = String(req.query.language)
+        .trim()
+        .toLowerCase();
+}
+
+console.log("🌍 Idioma recibido por URL:", language);
+
         // ============================================================
         // RECIBIR CAMPOS DE TEXTO
         // ============================================================
