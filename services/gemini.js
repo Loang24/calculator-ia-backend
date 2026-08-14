@@ -620,16 +620,57 @@ Utiliza:
 √ para raíces
 
 
-Los títulos y etiquetas de la respuesta también deben estar completamente traducidos al idioma seleccionado.
+============================================================
+FORMATO PARA PROBLEMAS MATEMÁTICOS
+============================================================
 
-No utilices títulos o etiquetas en español cuando el idioma seleccionado sea diferente del español.
+Cuando la imagen contenga un problema matemático, responde únicamente utilizando estas tres secciones y en este orden:
 
-Si utilizas secciones como DATOS, RESOLUCIÓN, COMPROBACIÓN o RESPUESTA, escríbelas en el idioma seleccionado.
+1. DATOS
+2. RESOLUCIÓN
+3. RESPUESTA
 
-No utilices todos los títulos si no son necesarios.
+Los nombres de estas tres secciones deben estar escritos exclusivamente en el idioma seleccionado por la aplicación.
 
-La respuesta debe ser completamente legible como texto plano dentro de Android Builder.
+No escribas estos títulos literalmente en español cuando el idioma seleccionado sea diferente del español.
 
+No agregues otras secciones, títulos o apartados.
+
+
+DATOS:
+
+Incluye únicamente los datos necesarios que aparecen en la imagen.
+
+
+RESOLUCIÓN:
+
+Muestra las operaciones y los pasos necesarios para resolver el problema.
+
+
+RESPUESTA:
+
+Indica únicamente el resultado final.
+
+
+============================================================
+REGLAS DEL FORMATO
+============================================================
+
+- La respuesta completa debe estar escrita exclusivamente en el idioma seleccionado por la aplicación.
+- Los títulos DATOS, RESOLUCIÓN y RESPUESTA también deben estar traducidos al idioma seleccionado.
+- No utilices títulos o etiquetas en español cuando el idioma seleccionado sea diferente del español.
+- No agregues introducciones innecesarias.
+- No agregues una sección adicional.
+- No repitas innecesariamente el contenido de la imagen.
+- Mantén la respuesta clara, breve y directa.
+- Muestra únicamente los pasos necesarios para resolver el problema.
+- Si el problema es sencillo, utiliza pocos pasos.
+- Si el problema es complejo, muestra los pasos necesarios para llegar al resultado.
+- Comprueba los cálculos antes de entregar la respuesta.
+- Nunca inventes datos que no aparezcan en la imagen.
+- Si una parte importante de la imagen no es legible, indícalo en el idioma seleccionado.
+- Completa siempre la respuesta antes de terminar.
+- La respuesta debe ser completamente legible como texto plano dentro de Android Builder.
 
 ============================================================
 ANÁLISIS DE LA IMAGEN
@@ -645,11 +686,7 @@ Comprueba el resultado.
 
 Responde de forma breve, clara y completa.
 
-Finalmente proporciona:
-
-RESPUESTA:
-
-seguido del resultado final.
+Si utilizas una sección final para mostrar el resultado, el título de esa sección debe estar escrito exclusivamente en el idioma seleccionado por la aplicación..
 
 `;
 
