@@ -14,14 +14,17 @@ const AI_PROVIDER = "gemini";
 // GEMINI - TEXTO
 // ============================================================
 
-async function askAI(message) {
+async function askAI(message, language) {
 
     if (AI_PROVIDER === "gemini") {
 
         console.log("🤖 USANDO GEMINI");
+        console.log("🌍 IDIOMA:", language);
 
-        return await askGemini(message);
-
+        return await askGemini(
+            message,
+            language
+        );
     }
 
     console.log("🤖 USANDO GROQ");
@@ -34,14 +37,22 @@ async function askAI(message) {
 // GEMINI - VISIÓN
 // ============================================================
 
-async function askAIVision(imageBuffer, mimeType) {
+async function askAIVision(
+    imageBuffer,
+    mimeType,
+    language
+) {
 
     if (AI_PROVIDER === "gemini") {
 
         console.log("👁️ USANDO GEMINI VISION");
+        console.log("🌍 IDIOMA:", language);
 
-        return await askGeminiVision(imageBuffer, mimeType);
-
+        return await askGeminiVision(
+            imageBuffer,
+            mimeType,
+            language
+        );
     }
 
     throw new Error(

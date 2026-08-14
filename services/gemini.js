@@ -67,7 +67,11 @@ function logGeminiError(error) {
     try {
 
         console.error(
-            JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+            JSON.stringify(
+                error,
+                Object.getOwnPropertyNames(error),
+                2
+            )
         );
 
     } catch (jsonError) {
@@ -91,7 +95,11 @@ async function generateWithRetry(request) {
 
     let lastError;
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    for (
+        let attempt = 1;
+        attempt <= MAX_RETRIES;
+        attempt++
+    ) {
 
         try {
 
@@ -121,18 +129,16 @@ async function generateWithRetry(request) {
                 `❌ Gemini error en intento ${attempt}: ${status || "DESCONOCIDO"}`
             );
 
-            // Mostrar información detallada
             logGeminiError(error);
 
-            // Si no es un error temporal,
-            // no hacemos más reintentos.
-
-            if (!RETRYABLE_STATUS.includes(Number(status))) {
+            if (
+                !RETRYABLE_STATUS.includes(
+                    Number(status)
+                )
+            ) {
 
                 throw error;
             }
-
-            // Último intento
 
             if (attempt === MAX_RETRIES) {
 
@@ -142,11 +148,6 @@ async function generateWithRetry(request) {
 
                 throw error;
             }
-
-            // Espera progresiva:
-            //
-            // intento 1 → 2 segundos
-            // intento 2 → 4 segundos
 
             const delay =
                 2000 * Math.pow(2, attempt - 1);
@@ -164,12 +165,157 @@ async function generateWithRetry(request) {
 
 
 // ============================================================
+// IDIOMA DE RESPUESTA
+// ============================================================
+
+function normalizeLanguage(language) {
+
+    let code = String(language || "es")
+        .trim()
+        .toLowerCase();
+
+    // Convertir formatos como:
+    // en-rGB → en
+    // en-US → en
+    // es-CO → es
+    // pt-BR → pt
+    // zh-CN → zh
+
+    code = code.replace("_", "-");
+
+    if (code.includes("-")) {
+        code = code.split("-")[0];
+    }
+
+    return code;
+}
+
+
+// ============================================================
+// INSTRUCCIÓN DE IDIOMA PARA GEMINI
+// ============================================================
+
+function getLanguageInstruction(language) {
+
+    const code = normalizeLanguage(language);
+
+    const instructions = {
+
+        af: "Responde exclusivamente en afrikáans.",
+        sq: "Responde exclusivamente en albanés.",
+        am: "Responde exclusivamente en amhárico.",
+        ar: "Responde exclusivamente en árabe.",
+        hy: "Responde exclusivamente en armenio.",
+        as: "Responde exclusivamente en asamés.",
+        az: "Responde exclusivamente en azerí.",
+        eu: "Responde exclusivamente en euskera.",
+        be: "Responde exclusivamente en bielorruso.",
+        bn: "Responde exclusivamente en bengalí.",
+        nb: "Responde exclusivamente en noruego bokmål.",
+        bs: "Responde exclusivamente en bosnio.",
+        bg: "Responde exclusivamente en búlgaro.",
+        my: "Responde exclusivamente en birmano.",
+        ca: "Responde exclusivamente en catalán.",
+        km: "Responde exclusivamente en jemer.",
+        zh: "Responde exclusivamente en chino.",
+        hr: "Responde exclusivamente en croata.",
+        da: "Responde exclusivamente en danés.",
+        nl: "Responde exclusivamente en neerlandés.",
+        en: "Responde exclusivamente en inglés.",
+        et: "Responde exclusivamente en estonio.",
+        fi: "Responde exclusivamente en finés.",
+        fr: "Responde exclusivamente en francés.",
+        gl: "Responde exclusivamente en gallego.",
+        ka: "Responde exclusivamente en georgiano.",
+        de: "Responde exclusivamente en alemán.",
+        el: "Responde exclusivamente en griego.",
+        gu: "Responde exclusivamente en guyaratí.",
+        iw: "Responde exclusivamente en hebreo.",
+        hi: "Responde exclusivamente en hindi.",
+        hu: "Responde exclusivamente en húngaro.",
+        is: "Responde exclusivamente en islandés.",
+        in: "Responde exclusivamente en indonesio.",
+        it: "Responde exclusivamente en italiano.",
+        ja: "Responde exclusivamente en japonés.",
+        kn: "Responde exclusivamente en canarés.",
+        kk: "Responde exclusivamente en kazajo.",
+        ky: "Responde exclusivamente en kirguís.",
+        ko: "Responde exclusivamente en coreano.",
+        lo: "Responde exclusivamente en lao.",
+        lv: "Responde exclusivamente en letón.",
+        lt: "Responde exclusivamente en lituano.",
+        mk: "Responde exclusivamente en macedonio.",
+        ms: "Responde exclusivamente en malayo.",
+        ml: "Responde exclusivamente en malayalam.",
+        mr: "Responde exclusivamente en maratí.",
+        mn: "Responde exclusivamente en mongol.",
+        ne: "Responde exclusivamente en nepalí.",
+        no: "Responde exclusivamente en noruego.",
+        or: "Responde exclusivamente en odia.",
+        pa: "Responde exclusivamente en panyabí.",
+        fa: "Responde exclusivamente en persa.",
+        pl: "Responde exclusivamente en polaco.",
+        pt: "Responde exclusivamente en portugués.",
+        ro: "Responde exclusivamente en rumano.",
+        ru: "Responde exclusivamente en ruso.",
+        sr: "Responde exclusivamente en serbio.",
+        si: "Responde exclusivamente en cingalés.",
+        sk: "Responde exclusivamente en eslovaco.",
+        sl: "Responde exclusivamente en esloveno.",
+        es: "Responde exclusivamente en español.",
+        sw: "Responde exclusivamente en suajili.",
+        sv: "Responde exclusivamente en sueco.",
+        tl: "Responde exclusivamente en tagalo.",
+        ta: "Responde exclusivamente en tamil.",
+        te: "Responde exclusivamente en telugu.",
+        th: "Responde exclusivamente en tailandés.",
+        tr: "Responde exclusivamente en turco.",
+        uk: "Responde exclusivamente en ucraniano.",
+        ur: "Responde exclusivamente en urdu.",
+        uz: "Responde exclusivamente en uzbeko.",
+        vi: "Responde exclusivamente en vietnamita.",
+        zu: "Responde exclusivamente en zulú."
+    };
+
+    return instructions[code] ||
+        "Responde exclusivamente en español.";
+}
+
+
+// ============================================================
 // GEMINI PARA TEXTO
 // ============================================================
 
-async function askGemini(message) {
+async function askGemini(
+    message,
+    language
+) {
 
     try {
+
+        const normalizedLanguage =
+            normalizeLanguage(language);
+
+        const languageInstruction =
+            getLanguageInstruction(
+                normalizedLanguage
+            );
+
+        console.log(
+            "🌍 Idioma recibido por Gemini:",
+            language
+        );
+
+        console.log(
+            "🌍 Idioma normalizado:",
+            normalizedLanguage
+        );
+
+        console.log(
+            "🗣️ Instrucción:",
+            languageInstruction
+        );
+
 
         const response =
             await generateWithRetry({
@@ -177,12 +323,15 @@ async function askGemini(message) {
                 model: "gemini-3.5-flash-lite",
 
                 contents: [
+
                     {
                         role: "user",
 
                         parts: [
+
                             {
                                 text: `
+
 Eres Calculator IA.
 
 Tu identidad:
@@ -193,9 +342,32 @@ Tu identidad:
 - Nunca respondas únicamente "Soy Gemini".
 - Si te preguntan quién eres, responde que eres Calculator IA.
 
-Reglas:
 
-1. Responde siempre en el mismo idioma del usuario.
+============================================================
+IDIOMA DE RESPUESTA
+============================================================
+
+${languageInstruction}
+
+El código de idioma seleccionado por la aplicación es:
+
+${normalizedLanguage}
+
+IMPORTANTE:
+
+- Debes responder exclusivamente en el idioma indicado anteriormente.
+- El idioma del dispositivo tiene prioridad sobre el idioma en el que escriba el usuario.
+- Si el usuario escribe en otro idioma, debes responder igualmente en el idioma indicado por la aplicación.
+- No cambies de idioma automáticamente.
+- No respondas en español si el idioma seleccionado es diferente.
+- Mantén los nombres de operaciones matemáticas y símbolos de forma comprensible para el idioma seleccionado.
+
+
+============================================================
+REGLAS
+============================================================
+
+1. Responde utilizando exclusivamente el idioma indicado por la aplicación.
 2. Sé breve, directo y específico.
 3. No repitas innecesariamente la pregunta del usuario.
 4. No hagas introducciones largas.
@@ -213,20 +385,29 @@ Reglas:
 16. Para problemas matemáticos, utiliza solamente los pasos indispensables.
 17. Evita explicaciones repetitivas o innecesarias.
 
-FORMATO:
+
+============================================================
+FORMATO
+============================================================
 
 Para problemas matemáticos utiliza:
 
 DATOS:
+
 Solo los datos necesarios.
 
 RESOLUCIÓN:
+
 Solo las operaciones y pasos indispensables.
 
 RESPUESTA:
+
 Resultado final.
 
-IMPORTANTE:
+
+============================================================
+IMPORTANTE
+============================================================
 
 La respuesta será mostrada directamente en un componente de texto plano de Android Builder.
 
@@ -253,22 +434,33 @@ Para matemáticas utiliza texto normal y símbolos Unicode:
 
 La respuesta debe ser completamente legible como texto plano.
 
-Pregunta del usuario:
+
+============================================================
+PREGUNTA DEL USUARIO
+============================================================
 
 ${message}
+
 `
+
                             }
+
                         ]
+
                     }
+
                 ]
 
             });
+
 
         return response.text;
 
     } catch (error) {
 
-        console.error("===== GEMINI ERROR =====");
+        console.error(
+            "===== GEMINI ERROR ====="
+        );
 
         logGeminiError(error);
 
@@ -283,22 +475,54 @@ ${message}
 
 async function askGeminiVision(
     imageBuffer,
-    mimeType
+    mimeType,
+    language
 ) {
 
     try {
 
-        // Convertir imagen a Base64
+        // ========================================================
+        // IDIOMA
+        // ========================================================
+
+        const normalizedLanguage =
+            normalizeLanguage(language);
+
+        const languageInstruction =
+            getLanguageInstruction(
+                normalizedLanguage
+            );
+
+        console.log(
+            "🌍 Idioma recibido por Gemini Vision:",
+            language
+        );
+
+        console.log(
+            "🌍 Idioma normalizado Vision:",
+            normalizedLanguage
+        );
+
+        console.log(
+            "🗣️ Instrucción Vision:",
+            languageInstruction
+        );
+
+
+        // ========================================================
+        // CONVERTIR IMAGEN A BASE64
+        // ========================================================
 
         const base64Image =
             imageBuffer.toString("base64");
 
 
-        // ====================================================
+        // ========================================================
         // PROMPT PARA CALCULATOR IA VISION
-        // ====================================================
+        // ========================================================
 
         const prompt = `
+
 Eres Calculator IA.
 
 Tu identidad:
@@ -309,9 +533,36 @@ Tu identidad:
 - Nunca respondas únicamente "Soy Gemini".
 - Si te preguntan quién eres, responde que eres Calculator IA.
 
+
+============================================================
+IDIOMA DE RESPUESTA
+============================================================
+
+${languageInstruction}
+
+El código de idioma seleccionado por la aplicación es:
+
+${normalizedLanguage}
+
+IMPORTANTE:
+
+- Debes responder exclusivamente en el idioma indicado por la aplicación.
+- El idioma del dispositivo tiene prioridad sobre el idioma que aparezca escrito en la imagen.
+- Si el texto de la imagen está en otro idioma, debes analizarlo normalmente pero responder en el idioma indicado por la aplicación.
+- No cambies de idioma automáticamente.
+- No respondas en español si el idioma seleccionado es diferente.
+
+
+============================================================
+TAREA
+============================================================
+
 Tu tarea es analizar cuidadosamente la imagen proporcionada.
 
-REGLAS PARA ANALIZAR LA IMAGEN:
+
+============================================================
+REGLAS PARA ANALIZAR LA IMAGEN
+============================================================
 
 1. Observa cuidadosamente toda la imagen antes de responder.
 2. Lee todo el texto visible en la imagen.
@@ -322,7 +573,7 @@ REGLAS PARA ANALIZAR LA IMAGEN:
 7. Comprueba los cálculos antes de entregar la respuesta.
 8. Si existe información visual importante para resolver el problema, utilízala.
 9. Si algún elemento importante de la imagen no es legible, indícalo claramente en lugar de inventarlo.
-10. Responde siempre en español.
+10. Responde exclusivamente en el idioma indicado por la aplicación.
 11. Sé breve, directo y específico.
 12. No repitas todo el texto de la imagen.
 13. No hagas introducciones innecesarias.
@@ -368,6 +619,7 @@ Utiliza:
 % para porcentajes
 √ para raíces
 
+
 Utiliza títulos simples en MAYÚSCULAS solamente cuando sean necesarios:
 
 DATOS:
@@ -402,13 +654,14 @@ Finalmente proporciona:
 RESPUESTA:
 
 seguido del resultado final.
+
 `;
 
 
-        // ====================================================
+        // ========================================================
         // CONTENIDO MULTIMODAL
         // IMAGEN + PROMPT
-        // ====================================================
+        // ========================================================
 
         const contents = [
 
@@ -426,9 +679,9 @@ seguido del resultado final.
         ];
 
 
-        // ====================================================
+        // ========================================================
         // ENVIAR A GEMINI CON REINTENTOS
-        // ====================================================
+        // ========================================================
 
         console.log(
             "👁️ USANDO GEMINI VISION"
@@ -456,11 +709,12 @@ seguido del resultado final.
             });
 
 
-        // ====================================================
+        // ========================================================
         // DEVOLVER RESPUESTA
-        // ====================================================
+        // ========================================================
 
         return response.text;
+
 
     } catch (error) {
 

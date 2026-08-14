@@ -24,6 +24,39 @@ module.exports = async (req, res) => {
         let imageBuffer = null;
         let mimeType = null;
 
+        // ============================================================
+        // IDIOMA DEL DISPOSITIVO
+        // ============================================================
+
+        let language = "es";
+
+        // ============================================================
+        // RECIBIR CAMPOS DE TEXTO
+        // ============================================================
+
+        busboy.on("field", (fieldname, value) => {
+
+            console.log("Campo recibido:", fieldname);
+            console.log("Valor:", value);
+
+            if (fieldname === "language") {
+
+                language = String(value || "es")
+                    .trim()
+                    .toLowerCase();
+
+                console.log(
+                    "🌍 Idioma recibido:",
+                    language
+                );
+            }
+
+        });
+
+        // ============================================================
+        // RECIBIR IMAGEN
+        // ============================================================
+
         busboy.on("file", (fieldname, file, info) => {
 
             console.log("Archivo recibido");
@@ -51,7 +84,10 @@ module.exports = async (req, res) => {
 
                 imageBuffer = Buffer.concat(chunks);
 
-                console.log("Archivo terminado.");
+                console.log(
+                    "Archivo terminado."
+                );
+
                 console.log(
                     "Tamaño:",
                     imageBuffer.length,
@@ -62,11 +98,24 @@ module.exports = async (req, res) => {
 
         });
 
+        // ============================================================
+        // CUANDO BUSBOY TERMINA
+        // ============================================================
+
         busboy.on("finish", async () => {
 
             console.log(
                 "Busboy terminó de procesar la petición."
             );
+
+            console.log(
+                "🌍 Idioma final:",
+                language
+            );
+
+            // ========================================================
+            // VERIFICAR IMAGEN
+            // ========================================================
 
             if (!imageBuffer) {
 
@@ -91,9 +140,14 @@ module.exports = async (req, res) => {
 
             try {
 
+                // ====================================================
+                // ENVIAR IMAGEN + IDIOMA A AI MANAGER
+                // ====================================================
+
                 const response = await askAIVision(
                     imageBuffer,
-                    mimeType
+                    mimeType,
+                    language
                 );
 
                 console.log(
@@ -109,9 +163,9 @@ module.exports = async (req, res) => {
                 // RESPUESTA LIMPIA PARA ANDROID BUILDER
                 // =====================================================
 
-               return res
-    .status(200)
-    .send(response);
+                return res
+                    .status(200)
+                    .send(response);
 
             } catch (error) {
 
