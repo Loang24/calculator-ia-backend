@@ -620,15 +620,11 @@ Utiliza:
 √ para raíces
 
 
-Utiliza títulos simples en MAYÚSCULAS solamente cuando sean necesarios:
+Los títulos y etiquetas de la respuesta también deben estar completamente traducidos al idioma seleccionado.
 
-DATOS:
+No utilices títulos o etiquetas en español cuando el idioma seleccionado sea diferente del español.
 
-RESOLUCIÓN:
-
-COMPROBACIÓN:
-
-RESPUESTA:
+Si utilizas secciones como DATOS, RESOLUCIÓN, COMPROBACIÓN o RESPUESTA, escríbelas en el idioma seleccionado.
 
 No utilices todos los títulos si no son necesarios.
 
